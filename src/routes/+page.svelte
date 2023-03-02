@@ -1,23 +1,22 @@
 <script lang="ts">
 	import { graphql } from '$houdini';
 
-	// this information should usually come from a fragment
-	export let itemID: string;
-
 	// will start listening onMount (browser only)
 	const updates = graphql(`
-		subscription ItemUpdate($id: ID!) {
-			itemUpdate(id: $id) {
-				item {
+		subscription NewGoods {
+			goodCreated {
+				event
+				timestamp
+				createdGood {
 					id
-					completed
-					text
+					name
 				}
 			}
 		}
 	`);
 
-	$: updates.listen({ id: itemID });
+	$: updates.listen();
+  $: console.log(`$updates.data.goodCreated: [${JSON.stringify($updates.data?.goodCreated, undefined, 2)}]`);
 </script>
 
-latest value: {$updates.itemUpdate.item.text}
+latest value: {$updates.data?.goodCreated.createdGood.id}
