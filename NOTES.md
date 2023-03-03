@@ -4,51 +4,56 @@
 
 ```shell
 $ npm create svelte@latest sveltekit-ts-houdini-subscription
-$ pnpm add houdini houdini-svelte graphql graphql-ws
+$ npx houdini@latest init
 ```
 
+## Error generating $houdini folder and runtime
 
+```shell
 Internal server error: Failed to load url /$houdini/plugins/houdini-svelte/runtime/session (resolved id: /$houdini/plugins/houdini-svelte/runtime/session) in /src/routes/+layout.server.js. Does the file exist?
+```
 
-create a dummy `src/routes/+page.gql`
+> empty runtime $houdini folder
 
-query{
-  goods{
-    id
-    name
-  }
-}
+> debug with `npx houdini generate -v`
 
+the problem is a bad used subscription, without a name 
+houdini required named queries, mutations and subscriptions
 
-empty runtime $houdini folder
+bad subscription, that causes `pnpm dev`, and houdini requires a non error boot to create `$houdini` and runtime
 
-debug with `npx houdini generate -v`
+```gql
+const updates = graphql(`
+	subscription NewGoods {
+		...
+	}
+`);
+```
 
-
-the problem is a named required in subscription 
-
-	const updates = graphql(`
-		subscription NewGoods {
-			goodCreated {
-				event
-				timestamp
-				createdGood {
-					id
-					name
-				}
+```gql
+const updates = graphql(`
+	subscription NewGoods {
+		goodCreated {
+			event
+			timestamp
+			createdGood {
+				id
+				name
 			}
 		}
-	`);
+	}
+`);
+```
 
+> tip uses a dummy `src/routes/+page.svelte` ex
 
+<h1>clean boot</h1>
 
-your client file imports from houdini
-it needs to import from $houdini
+## Never imports from 'houdini'
 
-KO
-  import { HoudiniClient, subscription } from 'houdini'
+> tip: your client file imports from `houdini`, it needs to import from `$houdini`
 
-OK
-  import { HoudiniClient, subscription } from '$houdini'  
+KO: `import { HoudiniClient, subscription } from 'houdini'`
+OK: `import { HoudiniClient, subscription } from '$houdini'`
 
-  
+> NEVER IMPORT FROM 'houdini', always from '$houdini'
